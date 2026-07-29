@@ -2,7 +2,6 @@
 
 import Loading from '@/components/Loading';
 import LoginRequired from '@/components/LoginRequired';
-import SiteHeader from '@/components/SiteHeader';
 import AppModal from '@/components/AppModal';
 import { getRoomOccupancyType } from '@/components/housing/Rooms';
 import { useAuth } from '@/hooks/useAuth';
@@ -470,7 +469,6 @@ export default function RoomPreferencesPage() {
 
     return (
         <div className="min-h-screen bg-sas-mist text-sas-black">
-            <SiteHeader />
             <AppModal
                 isOpen={pendingHref !== null}
                 title="Discard Unsaved Edits?"

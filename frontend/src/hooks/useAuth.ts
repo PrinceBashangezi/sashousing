@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { User } from '@/types';
 import { backendUrl } from '@/utils/api';
 
@@ -36,18 +36,17 @@ let authState: AuthState =
               loading: hasSessionHint(),
           };
 let authPromise: Promise<void> | null = null;
-const subscribers = new Set<(state: AuthState) => void>();
+const subscribers = new Set<() => void>();
 
 const notifySubscribers = () => {
-    subscribers.forEach((subscriber) => subscriber(authState));
+    subscribers.forEach((subscriber) => subscriber());
 };
 
 const subscribeToAuth = (subscriber: () => void) => {
-    const authSubscriber = () => subscriber();
-    subscribers.add(authSubscriber);
+    subscribers.add(subscriber);
 
     return () => {
-        subscribers.delete(authSubscriber);
+        subscribers.delete(subscriber);
     };
 };
 
@@ -123,22 +122,21 @@ const loadAuth = () => {
     return authPromise;
 };
 
+export const initializeAuth = () => {
+    if (hasSessionHint()) {
+        void loadAuth();
+        return;
+    }
+
+    resolveSignedOutWithoutSessionHint();
+};
+
 export function useAuth() {
-    const state = useSyncExternalStore(
+    return useSyncExternalStore(
         subscribeToAuth,
         getAuthSnapshot,
         getServerAuthSnapshot
     );
-
-    useEffect(() => {
-        if (hasSessionHint()) {
-            void loadAuth();
-        } else {
-            resolveSignedOutWithoutSessionHint();
-        }
-    }, []);
-
-    return state;
 }
 
 export function useCurrentUser() {

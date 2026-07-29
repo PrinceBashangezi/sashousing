@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { BuildingCardSkeleton } from '@/components/Skeleton';
 import { backendUrl } from '@/utils/api';
-import SiteHeader from '@/components/SiteHeader';
 import { useCurrentUser } from '@/hooks/useAuth';
 import { RoomDrawSettings } from '@/types';
 import {
@@ -208,7 +207,6 @@ const HousingPage = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                     <div className="mb-10 border-b border-sas-line pb-5">
                         <h1 className="font-display text-2xl font-semibold text-sas-black sm:text-4xl">
@@ -235,7 +233,6 @@ const HousingPage = () => {
     if (error) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center text-sas-green">
                     <p>{error}</p>
                 </div>
@@ -245,7 +242,6 @@ const HousingPage = () => {
 
     return (
         <div className="min-h-screen bg-sas-mist text-sas-black">
-            <SiteHeader />
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                 <div className="mb-10 border-b border-sas-line pb-5">
                     <h1 className="font-display text-2xl font-semibold text-sas-black sm:text-4xl">

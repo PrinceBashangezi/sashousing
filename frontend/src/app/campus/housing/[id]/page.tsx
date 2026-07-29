@@ -1,7 +1,6 @@
 'use client';
 
 import Skeleton, { RoomCardSkeleton } from '@/components/Skeleton';
-import SiteHeader from '@/components/SiteHeader';
 import { RoomCard, getRoomOccupancyType } from '@/components/housing/Rooms';
 import { useCurrentUser } from '@/hooks/useAuth';
 import {
@@ -795,7 +794,6 @@ export default function DynamicRooms() {
     if (loading) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                     <Skeleton className="mb-6 h-10 w-24" />
                     <Skeleton className="mb-4 h-10 w-64" />
@@ -819,7 +817,6 @@ export default function DynamicRooms() {
     if (buildingNotFound || !building) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="mx-auto flex min-h-[calc(100vh-12rem)] max-w-6xl items-center justify-center px-4">
                     <div className="w-full max-w-md rounded-md border border-sas-line bg-sas-white p-6 text-center shadow-sm">
                         <h1 className="font-display text-3xl font-semibold text-sas-green">
@@ -840,7 +837,6 @@ export default function DynamicRooms() {
     if (error && !buildingNotFound) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center text-sas-green">
                     <p>{error}</p>
                 </div>
@@ -850,7 +846,6 @@ export default function DynamicRooms() {
 
     return (
         <div className="min-h-screen bg-sas-mist text-sas-black">
-            <SiteHeader />
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                 {/* Back Button */}
                 <button

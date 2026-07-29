@@ -1,7 +1,6 @@
 'use client';
 
 import LoginRequired from '@/components/LoginRequired';
-import SiteHeader from '@/components/SiteHeader';
 import AppModal from '@/components/AppModal';
 import Skeleton, { ReviewSkeleton } from '@/components/Skeleton';
 import { PictureModal, ReviewForm } from '@/components/housing/Reviews';
@@ -152,7 +151,6 @@ const RoomPage = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
-                <SiteHeader />
                 <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                     <Skeleton className="mb-6 h-10 w-24" />
                     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -222,7 +220,6 @@ const RoomPage = () => {
 
     return (
         <div className="min-h-screen bg-sas-mist text-sas-black">
-            <SiteHeader />
             <RoomReviewAuthBoundary>
                 <AppModal
                     isOpen={showCancelEditModal}

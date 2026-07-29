@@ -1,6 +1,6 @@
 'use client';
 
-import { setSessionHint, useCurrentUser } from '@/hooks/useAuth';
+import { setSessionHint, useAuth } from '@/hooks/useAuth';
 import { backendUrl } from '@/utils/api';
 import { getFirebaseAuth } from '@/utils/firebase';
 import { renderGoogleSignInButton } from '@/utils/googleSignIn';
@@ -161,19 +161,19 @@ export default function SiteHeader({ onNavigate }: SiteHeaderProps = {}) {
 const SiteHeaderAuthControls = memo(function SiteHeaderAuthControls({
     onNavigate,
 }: SiteHeaderProps) {
-    const user = useCurrentUser();
+    const { user, loading } = useAuth();
     const [loggingOut, setLoggingOut] = useState(false);
     const googleButtonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (user || !googleButtonRef.current) return;
+        if (loading || user || !googleButtonRef.current) return;
 
         renderGoogleSignInButton(
             googleButtonRef.current,
             () => window.location.reload(),
             (error) => console.error('Login failed:', error)
         );
-    }, [user]);
+    }, [loading, user]);
 
     const logout = async () => {
         setLoggingOut(true);

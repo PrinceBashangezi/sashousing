@@ -1,4 +1,3 @@
-import SiteHeader from '@/components/SiteHeader';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
@@ -20,7 +19,6 @@ export default function HousingInfoLayout({
 }: HousingInfoLayoutProps) {
     return (
         <div className="min-h-screen bg-sas-mist text-sas-black">
-            <SiteHeader />
             {heroImage ? (
                 <div className="relative h-48 w-full sm:h-64">
                     <Image

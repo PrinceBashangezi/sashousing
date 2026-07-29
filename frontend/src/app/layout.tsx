@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { Analytics } from '@vercel/analytics/next';
+import AuthProvider from '@/components/AuthProvider';
 import SiteFooter from '@/components/SiteFooter';
 import './globals.css';
 
@@ -25,9 +26,11 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className="flex min-h-screen flex-col">
-                {children}
-                <SiteFooter />
-                <Analytics />
+                <AuthProvider>
+                    {children}
+                    <SiteFooter />
+                    <Analytics />
+                </AuthProvider>
 
                 <Script
                     src="https://accounts.google.com/gsi/client"
