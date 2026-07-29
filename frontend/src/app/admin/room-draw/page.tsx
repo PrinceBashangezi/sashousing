@@ -351,12 +351,16 @@ export default function RoomDrawAdminPage() {
         await action();
     };
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return <Loading />;
     }
 
     if (!user) {
         return <LoginRequired />;
+    }
+
+    if (loading) {
+        return <Loading />;
     }
 
     if (!user.isAdmin) {

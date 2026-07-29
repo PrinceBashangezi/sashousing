@@ -459,12 +459,16 @@ export default function RoomPreferencesPage() {
         setError(null);
     };
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return <Loading />;
     }
 
     if (!user) {
         return <LoginRequired />;
+    }
+
+    if (loading) {
+        return <Loading />;
     }
 
     return (

@@ -1021,7 +1021,7 @@ export default function HousingDataAdminPage() {
         setPendingDeleteRoomId(roomId);
     }, []);
 
-    if (authLoading || loading) {
+    if (authLoading || (user && loading)) {
         return (
             <div className="min-h-screen bg-sas-mist text-sas-black">
                 <SiteHeader />

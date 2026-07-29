@@ -50,12 +50,16 @@ export default function AdminRoomPreferencesPage() {
         fetchSummary();
     }, [authLoading, user]);
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return <Loading />;
     }
 
     if (!user) {
         return <LoginRequired />;
+    }
+
+    if (loading) {
+        return <Loading />;
     }
 
     if (!user.isAdmin) {

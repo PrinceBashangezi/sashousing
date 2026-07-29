@@ -34,7 +34,7 @@ export default function RootLayout({
 
                 <Script
                     src="https://accounts.google.com/gsi/client"
-                    strategy="afterInteractive"
+                    strategy="beforeInteractive"
                 />
             </body>
         </html>
