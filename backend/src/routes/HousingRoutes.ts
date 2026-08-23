@@ -2616,11 +2616,10 @@ router.delete(
 /**
  * @route   GET /api/campus/housing/:building/ratings
  * @desc    Get ratings for all rooms in a building
- * @access  isAuthenticated
+ * @access  Public
  */
 router.get(
     '/:building/ratings',
-    isAuthenticated,
     async (req: Request, res: Response) => {
         try {
             const buildingId = parseInt(getParam(req.params.building), 10);
