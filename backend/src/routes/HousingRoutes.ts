@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import multer from 'multer';
 import {
     isAdmin,
     isAuthenticated,
@@ -15,12 +14,9 @@ import {
     RoomDrawStatuses,
     RoomPreferences,
 } from '../models/Housing';
-import { getHousingReviewPictures } from '../db';
 
 const router = express.Router();
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
 const roomDrawStatusSubscribers = new Map<number, Set<Response>>();
 const roomPreferenceSubscribers = new Map<number, Set<Response>>();
 const userPreferenceSubscribers = new Map<string, Set<Response>>();
@@ -188,22 +184,6 @@ const parseOptionalShortText = (value: unknown, maxLength: number) => {
     }
 
     return String(value).trim().slice(0, maxLength);
-};
-
-const deleteReviewPictures = async (
-    reviews: Array<{ pictures?: mongoose.Types.ObjectId[] }>
-) => {
-    const pictureIds = reviews.flatMap((review) => review.pictures || []);
-    if (pictureIds.length === 0) {
-        return;
-    }
-
-    const bucket = getHousingReviewPictures();
-    await Promise.all(
-        pictureIds.map((pictureId) =>
-            bucket.delete(pictureId).catch(() => undefined)
-        )
-    );
 };
 
 const parseReviewRating = (value: unknown) => {
@@ -539,14 +519,6 @@ router.delete(
                 housing_building_id: buildingId,
             }).select('id');
             const roomIds = rooms.map((room) => room.id);
-            const reviews =
-                roomIds.length > 0
-                    ? await HousingReviews.find({
-                          housing_room_id: { $in: roomIds },
-                      }).select('pictures')
-                    : [];
-
-            await deleteReviewPictures(reviews);
             await Promise.all([
                 HousingBuildings.deleteOne({ id: buildingId }),
                 HousingRooms.deleteMany({ housing_building_id: buildingId }),
@@ -775,11 +747,6 @@ router.delete(
                 return;
             }
 
-            const reviews = await HousingReviews.find({
-                housing_room_id: roomId,
-            }).select('pictures');
-
-            await deleteReviewPictures(reviews);
             await Promise.all([
                 HousingRooms.deleteOne({ id: roomId }),
                 HousingReviews.deleteMany({ housing_room_id: roomId }),
@@ -2502,40 +2469,8 @@ router.get(
 router.post(
     '/:buildingId/:roomNumber/reviews',
     isAuthenticated,
-    upload.array('pictures'),
     async (req: Request, res: Response) => {
         try {
-            const pictureIds: mongoose.mongo.ObjectId[] = [];
-
-            // Upload each file to GridFS
-            if (Array.isArray(req.files)) {
-                for (let i = 0; i < req.files.length; i++) {
-                    const file = req.files[i] as Express.Multer.File;
-                    const housingReviewPictures = getHousingReviewPictures();
-
-                    // Create a writable stream to upload to GridFS
-                    const uploadStream = housingReviewPictures.openUploadStream(
-                        file.originalname,
-                        {
-                            contentType: file.mimetype,
-                        }
-                    );
-
-                    // Upload the file buffer to GridFS
-                    uploadStream.end(file.buffer);
-
-                    // Wait for the file upload to finish and get the file ID
-                    uploadStream.on('finish', () => {
-                        pictureIds.push(uploadStream.id);
-                    });
-
-                    // Wait for the stream to finish before continuing
-                    await new Promise((resolve) => {
-                        uploadStream.on('finish', resolve);
-                    });
-                }
-            }
-
             // need to find new max id for the new review
             const result = await HousingReviews.aggregate([
                 {
@@ -2585,13 +2520,11 @@ router.post(
                 housing_room_id: roomData.id,
                 user_id: req.session.user!.id,
                 user_email: req.session.user!.email,
-                pictures: pictureIds,
             };
 
             const review = new HousingReviews(reviewData);
             await review.save();
 
-            req.files = undefined; // free up memory
             res.status(201).json({ message: 'Review saved successfully' });
         } catch (error) {
             console.error('Review create error:', error);
@@ -2608,10 +2541,9 @@ router.post(
 router.patch(
     '/reviews/:reviewId',
     isHousingReviewOwner,
-    upload.array('pictures'),
     async (req: Request, res: Response) => {
         try {
-            if (!req.files && !req.body) {
+            if (!req.body) {
                 return;
             }
 
@@ -2637,59 +2569,7 @@ router.patch(
                 layout_rating: parsedReview.value.layout,
                 temperature_rating: parsedReview.value.temperature,
                 comments: parsedReview.value.comments,
-                pictures: oldReview.pictures,
             };
-
-            const pictureIds: mongoose.mongo.ObjectId[] = [];
-
-            if (Array.isArray(req.files) && req.files.length > 0) {
-                // if new pictures provided, delete old pictures from database
-                if (oldReview.pictures && oldReview.pictures.length > 0) {
-                    for (const pictureId of oldReview.pictures) {
-                        const oldPictureId = new mongoose.mongo.ObjectId(
-                            pictureId
-                        );
-                        const housingReviewPictures =
-                            getHousingReviewPictures();
-                        console.log(
-                            `Deleting image with ObjectId: ${oldPictureId}`
-                        );
-
-                        await housingReviewPictures.delete(oldPictureId);
-                        console.log(
-                            `Image with ObjectId ${oldPictureId} deleted from GridFS`
-                        );
-                    }
-                }
-
-                for (let i = 0; i < req.files.length; i++) {
-                    const file = req.files[i] as Express.Multer.File;
-                    const housingReviewPictures = getHousingReviewPictures();
-
-                    // Create a writable stream to upload to GridFS
-                    const uploadStream = housingReviewPictures.openUploadStream(
-                        file.originalname,
-                        {
-                            contentType: file.mimetype,
-                        }
-                    );
-
-                    // Upload the file buffer to GridFS
-                    uploadStream.end(file.buffer);
-
-                    // Wait for the file upload to finish and get the file ID
-                    uploadStream.on('finish', () => {
-                        pictureIds.push(uploadStream.id);
-                    });
-
-                    // Wait for the stream to finish before continuing
-                    await new Promise((resolve) => {
-                        uploadStream.on('finish', resolve);
-                    });
-                }
-
-                updateData.pictures = pictureIds;
-            }
 
             const updatedReview = await HousingReviews.findOneAndUpdate(
                 { id: reviewId },
@@ -2729,49 +2609,6 @@ router.delete(
             res.status(200).json({ message: 'Review deleted' });
         } catch (error) {
             res.status(500).json({ message: 'Server error' });
-        }
-    }
-);
-
-/**
- * @route   GET /api/campus/housing/review_pictures/:id
- * @desc    Get review picture by id
- * @access  isAuthenticated
- */
-router.get(
-    '/review_pictures/:id',
-    isAuthenticated,
-    async (req: Request, res: Response) => {
-        try {
-            const fileId = new mongoose.mongo.ObjectId(getParam(req.params.id));
-            const housingReviewPictures = getHousingReviewPictures();
-
-            // Check if file exists
-            const files = await housingReviewPictures
-                .find({ _id: fileId })
-                .toArray();
-            if (!files.length) {
-                res.status(404).json({ message: 'Profile picture not found' });
-                return;
-            }
-
-            // Set appropriate headers
-            res.set('Content-Type', files[0].contentType);
-
-            // Create download stream
-            const downloadStream =
-                housingReviewPictures.openDownloadStream(fileId);
-
-            // Pipe the file to the response
-            downloadStream.pipe(res);
-
-            downloadStream.on('error', () => {
-                res.status(404).json({
-                    message: 'Error retrieving profile picture',
-                });
-            });
-        } catch (error) {
-            res.status(400).json({ message: 'Invalid profile picture ID' });
         }
     }
 );

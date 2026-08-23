@@ -89,7 +89,6 @@ export interface Review {
     housing_room_id: number;
     user_id?: string;
     isOwner: boolean;
-    pictures?: string[];
     createdAt: Date;
     updatedAt: Date;
 }

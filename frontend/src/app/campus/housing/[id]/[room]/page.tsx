@@ -3,7 +3,7 @@
 import LoginRequired from '@/components/LoginRequired';
 import AppModal from '@/components/AppModal';
 import Skeleton, { ReviewSkeleton } from '@/components/Skeleton';
-import { PictureModal, ReviewForm } from '@/components/housing/Reviews';
+import { ReviewForm } from '@/components/housing/Reviews';
 import { StarRating, getRoomOccupancyType } from '@/components/housing/Rooms';
 import { useAuth } from '@/hooks/useAuth';
 import { Review, RoomWithReviews } from '@/types';
@@ -11,7 +11,6 @@ import { FormattedReviewText } from '@/utils/textFormatting';
 import { backendUrl } from '@/utils/api';
 import { getApiErrorMessage, getUserSafeMessage } from '@/utils/apiErrors';
 import { getBuildingSlug } from '@/utils/housingText';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
@@ -33,7 +32,6 @@ const RoomPage = () => {
     );
     const [isCreatingNew, setIsCreatingNew] = useState(false);
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-    const [selectedPicture, setSelectedPicture] = useState<string | null>(null);
     const [pendingDeleteReviewId, setPendingDeleteReviewId] = useState<
         number | null
     >(null);
@@ -534,55 +532,6 @@ const RoomPage = () => {
                                                         className="text-sas-black"
                                                     />
                                                 </div>
-                                            )}
-
-                                            {/* Review Pictures */}
-                                            {review.pictures && (
-                                                <div className="flex gap-3 overflow-x-auto pb-2">
-                                                    {review.pictures &&
-                                                        review.pictures.length >
-                                                            0 &&
-                                                        review.pictures.map(
-                                                            (
-                                                                picture,
-                                                                index
-                                                            ) => (
-                                                                <button
-                                                                    key={index}
-                                                                    type="button"
-                                                                    className="shrink-0"
-                                                                    onClick={() =>
-                                                                        setSelectedPicture(
-                                                                            picture
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <Image
-                                                                        src={`${backendUrl}/api/campus/housing/review_pictures/${picture}`}
-                                                                        alt={`Review image ${index + 1}`}
-                                                                        width={
-                                                                            200
-                                                                        }
-                                                                        height={
-                                                                            200
-                                                                        }
-                                                                        className="h-24 w-24 rounded-md object-cover sm:h-[200px] sm:w-[200px]"
-                                                                    />
-                                                                </button>
-                                                            )
-                                                        )}
-                                                </div>
-                                            )}
-
-                                            {/* If user clicks a picture, open a popup with enlarged image */}
-                                            {selectedPicture && (
-                                                <PictureModal
-                                                    isOpen={!!selectedPicture}
-                                                    onClose={() =>
-                                                        setSelectedPicture(null)
-                                                    }
-                                                    picture={selectedPicture}
-                                                />
                                             )}
 
                                             {/* Date written, last updated */}

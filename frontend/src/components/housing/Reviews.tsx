@@ -3,7 +3,6 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { ReviewFormProps } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
-import Image from 'next/image';
 import { backendUrl } from '@/utils/api';
 import { getApiErrorMessage, getUserSafeMessage } from '@/utils/apiErrors';
 
@@ -81,9 +80,6 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
     );
 
     const [comments, setComments] = useState<string>('');
-    const [pictures, setPictures] = useState<FileList | null>(null);
-    const [pictureURLs, setPictureURLs] = useState<string[] | null>(null);
-
     const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -98,16 +94,6 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                 temperature: review.temperature_rating || 0,
             });
             setComments(review.comments || '');
-            const urlList: string[] = [];
-
-            if (review.pictures) {
-                for (const picture of review.pictures) {
-                    urlList.push(
-                        `${backendUrl}/api/campus/housing/review_pictures/${picture}`
-                    );
-                }
-            }
-            setPictureURLs(urlList);
         }
     }, [review]);
 
@@ -115,18 +101,6 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         e: React.ChangeEvent<HTMLTextAreaElement>
     ) => {
         setComments(e.target.value);
-    };
-
-    const handlePicturesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPictures(e.target.files);
-
-        const urlList: string[] = [];
-        if (e.target.files) {
-            for (const file of e.target.files) {
-                urlList.push(URL.createObjectURL(file));
-            }
-        }
-        setPictureURLs(urlList);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -162,19 +136,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             }
 
             // Construct review request
-            const formData = new FormData();
-            formData.append('overall', ratings.overall.toString());
-            formData.append('quiet', ratings.quiet.toString());
-            formData.append('layout', ratings.layout.toString());
-            formData.append('temperature', ratings.temperature.toString());
-            formData.append('comments', comments);
-            formData.append('email', user.email);
-
-            if (pictures) {
-                Array.from(pictures).forEach((file) => {
-                    formData.append('pictures', file);
-                });
-            }
+            const reviewData = {
+                overall: ratings.overall,
+                quiet: ratings.quiet,
+                layout: ratings.layout,
+                temperature: ratings.temperature,
+                comments,
+                email: user.email,
+            };
 
             const url = review
                 ? `${backendUrl}/api/campus/housing/reviews/${review.id}`
@@ -184,7 +153,8 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
             const response = await fetch(url, {
                 method,
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reviewData),
                 credentials: 'include',
             });
 
@@ -276,34 +246,6 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                 )}
             </div>
 
-            {/* File Upload */}
-            <div>
-                <label htmlFor="pictures">Upload Files:</label>
-                <input
-                    id="pictures"
-                    type="file"
-                    multiple
-                    onChange={handlePicturesChange}
-                    className="w-full rounded-md border border-sas-line p-2"
-                />
-
-                <div className="mt-2 flex gap-3 overflow-x-auto pb-2">
-                    {pictureURLs &&
-                        pictureURLs.length > 0 &&
-                        pictureURLs.map((pictureURL, index) => (
-                            <div key={index} className="shrink-0">
-                                <Image
-                                    src={pictureURL}
-                                    alt={`Review image ${index + 1}`}
-                                    width={200}
-                                    height={200}
-                                    className="h-24 w-24 rounded-md object-cover sm:h-[200px] sm:w-[200px]"
-                                />
-                            </div>
-                        ))}
-                </div>
-            </div>
-
             {/* Submit Button */}
             <button
                 type="submit"
@@ -323,41 +265,5 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                 </p>
             )}
         </form>
-    );
-};
-
-export const PictureModal = ({
-    isOpen,
-    onClose,
-    picture,
-}: {
-    isOpen: boolean;
-    onClose: () => void;
-    picture: string;
-}) => {
-    if (!isOpen) return null;
-
-    return (
-        <div
-            className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-sas-black bg-opacity-40"
-            onClick={onClose}
-        >
-            <div className="relative mx-4 max-h-[90vh] w-full max-w-[calc(100vw-2rem)] overflow-auto rounded-md bg-sas-white p-4 sm:mx-0 sm:max-w-4xl">
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="absolute right-2 top-2 text-3xl font-bold text-sas-black/60 hover:text-sas-green"
-                >
-                    &times;
-                </button>
-                <Image
-                    src={`${backendUrl}/api/campus/housing/review_pictures/${picture}`}
-                    width={800}
-                    height={800}
-                    alt="Review picture"
-                    className="h-auto max-h-[85vh] w-full object-contain"
-                />
-            </div>
-        </div>
     );
 };

@@ -149,7 +149,6 @@ interface IHousingReviews extends Document {
     housing_room_id: number;
     user_id: string;
     user_email: string;
-    pictures: mongoose.Types.ObjectId[]; // list of picture _ids
 }
 
 const HousingReviewsSchema = new Schema<IHousingReviews>(
@@ -190,11 +189,6 @@ const HousingReviewsSchema = new Schema<IHousingReviews>(
             lowercase: true,
             trim: true,
         },
-        pictures: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-            },
-        ],
     },
     {
         timestamps: true,
