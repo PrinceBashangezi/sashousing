@@ -346,20 +346,21 @@ const RoomPage = () => {
                                     <h4 className="mb-3 font-display text-xl font-semibold text-sas-green">
                                         Summary
                                     </h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <p className="text-sas-black/65">
-                                            Occupancy:{' '}
-                                            {getRoomOccupancyType(
-                                                roomReviews.room.occupancy_type
-                                            )}
+                                    <div className='inline-flex'>
+                                        <p className="text-sas-black/65  py-4 mr-4">
+                                            <strong> Occupancy:{' '}
+                                                {getRoomOccupancyType(
+                                                    roomReviews.room.occupancy_type
+                                                )} </strong>
                                         </p>
-
-                                        {roomReviews.room.size && (
-                                            <p className="text-sas-black/65">
-                                                Size: {roomReviews.room.size}{' '}
-                                                sq. ft.
-                                            </p>
-                                        )}
+                                            {roomReviews.room.size && (
+                                                <strong><p className="text-sas-black/65 py-4">
+                                                    Size: {roomReviews.room.size}{' '}
+                                                    sq. ft.
+                                                </p> </strong>
+                                            )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <p className="text-sas-black/65">
                                                 Overall
@@ -559,7 +560,7 @@ const RoomPage = () => {
                                                         review.createdAt
                                                     )}
                                                 </p>
-                                                <p>
+                                                <p className='ml-auto'>
                                                     Last updated{' '}
                                                     {formatDate(
                                                         review.updatedAt
