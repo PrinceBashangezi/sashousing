@@ -2,6 +2,7 @@
 
 import LoginRequired from '@/components/LoginRequired';
 import SiteHeader from '@/components/SiteHeader';
+import Pagination from '@/components/Pagination';
 import AppModal from '@/components/AppModal';
 import AdminTabs from '@/components/admin/AdminTabs';
 import Skeleton, { AdminRoomTableSkeleton } from '@/components/Skeleton';
@@ -475,6 +476,7 @@ export default function HousingDataAdminPage() {
         null
     );
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [roomPage, setRoomPage] = useState(1);
     const [editingBuilding, setEditingBuilding] = useState(false);
     const [editingRoomId, setEditingRoomId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
@@ -580,6 +582,7 @@ export default function HousingDataAdminPage() {
     const discardAndNavigate = () => {
         setEditingBuilding(false);
         setEditingRoomId(null);
+        setRoomPage(1);
         if (pendingHref) {
             router.push(pendingHref);
             setPendingHref(null);
@@ -598,6 +601,7 @@ export default function HousingDataAdminPage() {
 
         setEditingBuilding(false);
         setEditingRoomId(null);
+        setRoomPage(1);
         setSelectedBuildingId(buildingId);
     };
 
@@ -608,6 +612,7 @@ export default function HousingDataAdminPage() {
 
         setEditingBuilding(false);
         setEditingRoomId(null);
+        setRoomPage(1);
         setSelectedBuildingId(pendingBuildingId);
         setPendingBuildingId(null);
     };
@@ -672,16 +677,20 @@ export default function HousingDataAdminPage() {
             setMessage(null);
             setError(null);
             setEditingRoomId(null);
+            setRoomPage(1);
 
             try {
                 const response = await fetch(
-                    `${backendUrl}/api/campus/housing/${selectedBuildingId}/rooms`,
+                    `${backendUrl}/api/campus/housing/${selectedBuildingId}/rooms?page=1&pageSize=100`,
                     {
                         credentials: 'include',
                     }
                 );
 
-                const data = response.ok ? ((await response.json()) as Room[]) : [];
+                const payload = response.ok ? await response.json() : null;
+                const data = (Array.isArray(payload)
+                    ? payload
+                    : payload?.rooms || []) as Room[];
                 setRooms(data);
             } catch (error) {
                 console.error('Room data load error:', error);
@@ -693,6 +702,17 @@ export default function HousingDataAdminPage() {
 
         fetchRooms();
     }, [selectedBuildingId]);
+
+    const roomsPerPage = 24;
+    const totalRoomPages = Math.max(1, Math.ceil(rooms.length / roomsPerPage));
+    const paginatedRooms = rooms.slice(
+        (roomPage - 1) * roomsPerPage,
+        roomPage * roomsPerPage
+    );
+
+    useEffect(() => {
+        if (roomPage > totalRoomPages) setRoomPage(totalRoomPages);
+    }, [roomPage, totalRoomPages]);
 
     const saveBuilding = useCallback(async (buildingForm: BuildingForm) => {
         if (!selectedBuildingId) {
@@ -1338,7 +1358,7 @@ export default function HousingDataAdminPage() {
                             onDelete={requestDeleteSelectedBuilding}
                         />
 
-                        <div className="mt-8 rounded-md border border-sas-line bg-sas-white p-4 shadow-sm sm:p-6">
+                        <div id="admin-room-list" className="mt-8 rounded-md border border-sas-line bg-sas-white p-4 shadow-sm sm:p-6">
                             <h2 className="font-display text-xl font-semibold text-sas-black sm:text-2xl">
                                 Rooms
                             </h2>
@@ -1351,7 +1371,7 @@ export default function HousingDataAdminPage() {
                             ) : (
                                 <>
                                     <div className="mt-5 space-y-4 md:hidden">
-                                        {rooms.map((room) => (
+                                        {paginatedRooms.map((room) => (
                                             <AdminRoomEditor
                                                 key={room.id}
                                                 room={room}
@@ -1405,7 +1425,7 @@ export default function HousingDataAdminPage() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {rooms.map((room) => (
+                                                {paginatedRooms.map((room) => (
                                                     <AdminRoomEditor
                                                         key={room.id}
                                                         room={room}
@@ -1449,6 +1469,12 @@ export default function HousingDataAdminPage() {
                                             </tbody>
                                         </table>
                                     </div>
+                                    <Pagination
+                                        page={roomPage}
+                                        totalPages={totalRoomPages}
+                                        onPageChange={setRoomPage}
+                                        scrollTargetId="admin-room-list"
+                                    />
                                 </>
                             )}
                         </div>

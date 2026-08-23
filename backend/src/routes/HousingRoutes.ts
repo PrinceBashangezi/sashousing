@@ -99,6 +99,12 @@ const getBuildingIdsForRoomIds = async (roomIds: number[]) => {
 const getParam = (param: string | string[]): string =>
     Array.isArray(param) ? param[0] : param;
 
+const getPagination = (query: Request['query']) => {
+    const page = Math.max(1, Number(query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 50));
+    return { page, pageSize, skip: (page - 1) * pageSize };
+};
+
 const ROOM_DRAW_SETTINGS_KEY = 'global';
 
 const isRoomDrawVisible = (settings?: {
@@ -2255,16 +2261,27 @@ router.get(
             }
 
             // Get all rooms in the building
-            const rooms = await HousingRooms.find({
+            const filter = {
                 housing_building_id: buildingId,
-            }).sort({ room_number: 1 });
+            };
+            const { page, pageSize, skip } = getPagination(req.query);
+            const [rooms, total] = await Promise.all([
+                HousingRooms.find(filter)
+                    .sort({ room_number: 1 })
+                    .skip(skip)
+                    .limit(pageSize),
+                HousingRooms.countDocuments(filter),
+            ]);
 
-            if (!rooms || rooms.length === 0) {
-                res.status(404).json({ message: 'Rooms not found' });
-                return;
-            }
-
-            res.json(rooms);
+            res.json({
+                rooms,
+                pagination: {
+                    page,
+                    pageSize,
+                    total,
+                    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+                },
+            });
         } catch (error) {
             res.status(500).json({ message: 'Server error' });
         }
@@ -2299,9 +2316,11 @@ router.get(
             }
 
             // Get all reviews for the room
-            const reviews = await HousingReviews.find({
+            const allReviews = await HousingReviews.find({
                 housing_room_id: roomId,
             }).lean();
+            const { page, pageSize, skip } = getPagination(req.query);
+            const reviews = allReviews.slice(skip, skip + pageSize);
 
             const sessionUserId = req.session.user!.id;
             const safeReviews = reviews.map(({ user_id, user_email, ...fields }) => ({
@@ -2334,7 +2353,7 @@ router.get(
                     quietAverage: calcAverage(quietRatings),
                     layoutAverage: calcAverage(layoutRatings),
                     temperatureAverage: calcAverage(temperatureRatings),
-                    reviewCount: reviews.length,
+                    reviewCount: allReviews.length,
                 };
 
                 // Return reviews and averages as well as the room data itself
@@ -2342,6 +2361,15 @@ router.get(
                     room: roomData,
                     reviews: safeReviews,
                     averages: averages,
+                    pagination: {
+                        page,
+                        pageSize,
+                        total: allReviews.length,
+                        totalPages: Math.max(
+                            1,
+                            Math.ceil(allReviews.length / pageSize)
+                        ),
+                    },
                 });
                 return;
             }
@@ -2356,6 +2384,12 @@ router.get(
                     layoutAverage: 0,
                     temperatureAverage: 0,
                     reviewCount: 0,
+                },
+                pagination: {
+                    page,
+                    pageSize,
+                    total: 0,
+                    totalPages: 1,
                 },
             });
         } catch (error) {
@@ -2396,9 +2430,11 @@ router.get(
             }
 
             // Get all reviews for the room using room id
-            const reviews = await HousingReviews.find({
+            const allReviews = await HousingReviews.find({
                 housing_room_id: roomData.id,
             }).lean();
+            const { page, pageSize, skip } = getPagination(req.query);
+            const reviews = allReviews.slice(skip, skip + pageSize);
 
             const sessionUserId = req.session.user!.id;
             const safeReviews = reviews.map(({ user_id, user_email, ...fields }) => ({
@@ -2431,7 +2467,7 @@ router.get(
                     quietAverage: calcAverage(quietRatings),
                     layoutAverage: calcAverage(layoutRatings),
                     temperatureAverage: calcAverage(temperatureRatings),
-                    reviewCount: reviews.length,
+                    reviewCount: allReviews.length,
                 };
 
                 // Return reviews and averages as well as the room data itself
@@ -2439,6 +2475,15 @@ router.get(
                     room: roomData,
                     reviews: safeReviews,
                     averages: averages,
+                    pagination: {
+                        page,
+                        pageSize,
+                        total: allReviews.length,
+                        totalPages: Math.max(
+                            1,
+                            Math.ceil(allReviews.length / pageSize)
+                        ),
+                    },
                 });
                 return;
             }
@@ -2453,6 +2498,12 @@ router.get(
                     layoutAverage: 0,
                     temperatureAverage: 0,
                     reviewCount: 0,
+                },
+                pagination: {
+                    page,
+                    pageSize,
+                    total: 0,
+                    totalPages: 1,
                 },
             });
         } catch (error) {

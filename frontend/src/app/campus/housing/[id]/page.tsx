@@ -2,6 +2,7 @@
 
 import Skeleton, { RoomCardSkeleton } from '@/components/Skeleton';
 import { RoomCard, getRoomOccupancyType } from '@/components/housing/Rooms';
+import Pagination from '@/components/Pagination';
 import { useCurrentUser } from '@/hooks/useAuth';
 import {
     Building,
@@ -161,6 +162,7 @@ export default function DynamicRooms() {
         new Set()
     );
     const [roomSearchQuery, setRoomSearchQuery] = useState('');
+    const [roomPage, setRoomPage] = useState(1);
     const [roomDrawStatusFilter, setRoomDrawStatusFilter] =
         useState<RoomDrawStatusFilter>('all');
     const [showFloorPlans, setShowFloorPlans] = useState(false);
@@ -206,7 +208,7 @@ export default function DynamicRooms() {
                         credentials: 'include',
                     }),
                     fetch(
-                        `${backendUrl}/api/campus/housing/${buildingId}/rooms`,
+                        `${backendUrl}/api/campus/housing/${buildingId}/rooms?page=1&pageSize=100`,
                         { credentials: 'include' }
                     ),
                     fetch(
@@ -247,7 +249,9 @@ export default function DynamicRooms() {
                     await Promise.all([
                         buildingResponse.json(),
                         roomsResponse.ok
-                            ? roomsResponse.json()
+                            ? roomsResponse.json().then((data) =>
+                                  Array.isArray(data) ? data : data.rooms
+                              )
                             : ([] as Room[]),
                         roomDrawResponse?.ok
                             ? roomDrawResponse.json()
@@ -730,7 +734,7 @@ export default function DynamicRooms() {
         }
     }, [refreshRoomPreferences]);
 
-    const displayedRooms = useMemo(() => {
+    const filteredRooms = useMemo(() => {
         const normalizedQuery = roomSearchQuery.trim().toLowerCase();
 
         return rooms.filter((room) => {
@@ -779,6 +783,24 @@ export default function DynamicRooms() {
         roomDrawStatusFilter,
         roomDrawVisible,
     ]);
+
+    const roomsPerPage = 24;
+    const roomTotalPages = Math.max(
+        1,
+        Math.ceil(filteredRooms.length / roomsPerPage)
+    );
+    const displayedRooms = filteredRooms.slice(
+        (roomPage - 1) * roomsPerPage,
+        roomPage * roomsPerPage
+    );
+
+    useEffect(() => {
+        setRoomPage(1);
+    }, [roomSearchQuery, roomDrawStatusFilter]);
+
+    useEffect(() => {
+        if (roomPage > roomTotalPages) setRoomPage(roomTotalPages);
+    }, [roomPage, roomTotalPages]);
 
     const takenRoomCount = useMemo(
         () =>
@@ -960,7 +982,7 @@ export default function DynamicRooms() {
                     />
                     {roomSearchQuery.trim() && (
                         <p className="mt-2 text-sm text-sas-black/55">
-                            Showing {displayedRooms.length} of {rooms.length}{' '}
+                            Showing {filteredRooms.length} of {rooms.length}{' '}
                             rooms
                         </p>
                     )}
@@ -1000,6 +1022,7 @@ export default function DynamicRooms() {
                     </div>
                 )}
 
+                <div id="room-list">
                 {rooms.length > 0 && displayedRooms.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <AuthenticatedRoomGrid
@@ -1031,6 +1054,13 @@ export default function DynamicRooms() {
                         </p>
                     </div>
                 )}
+                </div>
+                <Pagination
+                    page={roomPage}
+                    totalPages={roomTotalPages}
+                    onPageChange={setRoomPage}
+                    scrollTargetId="room-list"
+                />
             </div>
             {focusedFloorPlan && (
                 <div

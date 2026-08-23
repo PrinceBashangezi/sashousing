@@ -1,6 +1,7 @@
 'use client';
 
 import LoginRequired from '@/components/LoginRequired';
+import Pagination from '@/components/Pagination';
 import AppModal from '@/components/AppModal';
 import Skeleton, { ReviewSkeleton } from '@/components/Skeleton';
 import { ReviewForm } from '@/components/housing/Reviews';
@@ -38,6 +39,7 @@ const RoomPage = () => {
     const [showCancelEditModal, setShowCancelEditModal] = useState(false);
     const [pageMessage, setPageMessage] = useState<string | null>(null);
     const [pageError, setPageError] = useState<string | null>(null);
+    const [reviewPage, setReviewPage] = useState(1);
 
     const handleAddNewReviewClick = (shouldScrollToForm = false) => {
         if (isCreatingNew) {
@@ -94,7 +96,7 @@ const RoomPage = () => {
                         }
                     ),
                     fetch(
-                        `${backendUrl}/api/campus/housing/${buildingId}/${roomParam}/reviews`,
+                        `${backendUrl}/api/campus/housing/${buildingId}/${roomParam}/reviews?page=1&pageSize=100`,
                         {
                             credentials: 'include',
                         }
@@ -126,6 +128,21 @@ const RoomPage = () => {
 
         fetchReviews();
     }, [id, room]);
+
+    const reviewsPerPage = 10;
+    const reviewTotalPages = roomReviews
+        ? Math.max(1, Math.ceil(roomReviews.reviews.length / reviewsPerPage))
+        : 1;
+    const paginatedReviews = roomReviews
+        ? roomReviews.reviews.slice(
+              (reviewPage - 1) * reviewsPerPage,
+              reviewPage * reviewsPerPage
+          )
+        : [];
+
+    useEffect(() => {
+        if (reviewPage > reviewTotalPages) setReviewPage(reviewTotalPages);
+    }, [reviewPage, reviewTotalPages]);
 
     const targetRef = useRef<HTMLButtonElement | null>(null);
 
@@ -431,8 +448,8 @@ const RoomPage = () => {
                                 </div>
 
                                 {/* User Reviews */}
-                                <div className="space-y-6">
-                                    {roomReviews.reviews.map((review) => (
+                                <div id="review-list" className="space-y-6">
+                                    {paginatedReviews.map((review) => (
                                         <div
                                             key={review._id}
                                             className="border-b border-sas-line pb-4"
@@ -552,6 +569,12 @@ const RoomPage = () => {
                                         </div>
                                     ))}
                                 </div>
+                                <Pagination
+                                    page={reviewPage}
+                                    totalPages={reviewTotalPages}
+                                    onPageChange={setReviewPage}
+                                    scrollTargetId="review-list"
+                                />
                             </>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-40">
