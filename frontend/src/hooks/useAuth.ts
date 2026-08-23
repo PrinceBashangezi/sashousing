@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { User } from '@/types';
 import { backendUrl } from '@/utils/api';
+import { getFirebaseAuth } from '@/utils/firebase';
 
 type AuthState = {
     user: User | null;
@@ -91,9 +92,13 @@ const loadAuth = () => {
         return authPromise;
     }
 
-    authPromise = fetch(`${backendUrl}/api/auth/current_user`, {
-        credentials: 'include',
-    })
+    authPromise = getFirebaseAuth()
+        .authStateReady()
+        .then(() =>
+            fetch(`${backendUrl}/api/auth/current_user`, {
+                credentials: 'include',
+            })
+        )
         .then(async (response) => {
             if (!response.ok) {
                 setSessionHint(false);

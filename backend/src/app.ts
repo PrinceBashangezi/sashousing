@@ -6,6 +6,7 @@ import session from 'express-session';
 import authRoutes from './routes/AuthRoutes';
 import housingRoutes from './routes/HousingRoutes';
 import { connectDb } from './db';
+import { hydrateBearerSession } from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -85,6 +86,9 @@ app.use(async (_req: Request, _res: Response, next: NextFunction) => {
         next(error);
     }
 });
+
+// MOBILE AUTH COMPATIBILITY: remove when same-site domains are available.
+app.use(hydrateBearerSession);
 
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ ok: true });
