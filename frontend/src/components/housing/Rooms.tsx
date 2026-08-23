@@ -208,7 +208,7 @@ export const RoomCard = memo(function RoomCard({
 
     return (
         <div
-            className={`w-full rounded-md border p-4 shadow-sm transition-shadow hover:border-sas-green hover:shadow-md ${roomDrawCardClasses}`}
+            className={`flex flex-col justify-between w-full rounded-md border p-4 shadow-sm transition-shadow hover:border-sas-green hover:shadow-md ${roomDrawCardClasses}`}
         >
             <div className="mb-6">
                 <div className="flex items-start justify-between gap-3">
@@ -321,9 +321,11 @@ export const RoomCard = memo(function RoomCard({
                 </p>
             )}
 
-            <RoomReviewButton reviewHref={reviewHref} />
+            <div className='order-4 p-4'>
+                <RoomReviewButton  reviewHref={reviewHref} />
+           </div>
             {canManagePreferences && (
-                <div className="mt-3">
+                <div className="mt-3 flex flex-col gap-4">
                     {preferenceHolders.length > 0 && (
                         <div className="mb-3 rounded-md border border-sas-line bg-sas-mist px-3 py-2 text-xs text-sas-black/65">
                             <div className="space-y-1">

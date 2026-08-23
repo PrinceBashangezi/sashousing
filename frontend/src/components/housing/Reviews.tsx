@@ -277,7 +277,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             </div>
 
             {/* File Upload */}
-            <div>
+            {/*<div>
                 <label htmlFor="pictures">Upload Files:</label>
                 <input
                     id="pictures"
@@ -302,7 +302,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
                             </div>
                         ))}
                 </div>
-            </div>
+            </div>*/}
 
             {/* Submit Button */}
             <button

@@ -331,20 +331,21 @@ const RoomPage = () => {
                                     <h4 className="mb-3 font-display text-xl font-semibold text-sas-green">
                                         Summary
                                     </h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <p className="text-sas-black/65">
-                                            Occupancy:{' '}
-                                            {getRoomOccupancyType(
-                                                roomReviews.room.occupancy_type
-                                            )}
+                                    <div className='inline-flex'>
+                                        <p className="text-sas-black/65  py-4 mr-4">
+                                            <strong> Occupancy:{' '}
+                                                {getRoomOccupancyType(
+                                                    roomReviews.room.occupancy_type
+                                                )} </strong>
                                         </p>
-
-                                        {roomReviews.room.size && (
-                                            <p className="text-sas-black/65">
-                                                Size: {roomReviews.room.size}{' '}
-                                                sq. ft.
-                                            </p>
-                                        )}
+                                            {roomReviews.room.size && (
+                                                <strong><p className="text-sas-black/65 py-4">
+                                                    Size: {roomReviews.room.size}{' '}
+                                                    sq. ft.
+                                                </p> </strong>
+                                            )}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <p className="text-sas-black/65">
                                                 Overall
@@ -537,6 +538,7 @@ const RoomPage = () => {
                                             )}
 
                                             {/* Review Pictures */}
+                                            {/*
                                             {review.pictures && (
                                                 <div className="flex gap-3 overflow-x-auto pb-2">
                                                     {review.pictures &&
@@ -572,9 +574,10 @@ const RoomPage = () => {
                                                             )
                                                         )}
                                                 </div>
-                                            )}
+                                            )*/}
 
                                             {/* If user clicks a picture, open a popup with enlarged image */}
+                                    {/*
                                             {selectedPicture && (
                                                 <PictureModal
                                                     isOpen={!!selectedPicture}
@@ -584,7 +587,7 @@ const RoomPage = () => {
                                                     picture={selectedPicture}
                                                 />
                                             )}
-
+                                    */}
                                             {/* Date written, last updated */}
                                             <div className="mt-3 flex flex-col gap-1 text-sm text-sas-black/55 sm:flex-row sm:gap-8">
                                                 <p>
@@ -593,7 +596,7 @@ const RoomPage = () => {
                                                         review.createdAt
                                                     )}
                                                 </p>
-                                                <p>
+                                                <p className='ml-auto'>
                                                     Last updated{' '}
                                                     {formatDate(
                                                         review.updatedAt
