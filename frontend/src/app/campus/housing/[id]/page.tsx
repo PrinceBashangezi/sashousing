@@ -849,7 +849,7 @@ export default function DynamicRooms() {
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
                 {/* Back Button */}
                 <button
-                    onClick={() => router.back()}
+                    onClick={() => router.push('/campus/housing')}
                     className="mb-6 inline-flex items-center rounded-md border border-sas-line bg-sas-white px-4 py-2 text-sm font-medium text-sas-black shadow-sm hover:border-sas-green hover:text-sas-green focus:outline-none focus:ring-2 focus:ring-sas-green focus:ring-offset-2"
                 >
                     Back
